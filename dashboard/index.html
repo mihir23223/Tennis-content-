@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Tennis Coaching Dashboard</title>
+<style>
+  :root {
+    --bg: #0f1720;
+    --card: #18222e;
+    --card2: #1f2c3b;
+    --accent: #c73a63;
+    --accent2: #2ecc71;
+    --text: #e6edf3;
+    --muted: #8aa0b3;
+    --line: #2a3949;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    line-height: 1.45; padding-bottom: 60px;
+  }
+  header {
+    padding: 20px 16px 8px; max-width: 880px; margin: 0 auto;
+  }
+  h1 { font-size: 1.5rem; margin: 0 0 4px; }
+  .sub { color: var(--muted); font-size: .9rem; margin: 0 0 16px; }
+  main { max-width: 880px; margin: 0 auto; padding: 0 16px; }
+  .card {
+    background: var(--card); border: 1px solid var(--line);
+    border-radius: 14px; padding: 16px; margin-bottom: 16px;
+  }
+  .card h2 { font-size: 1.05rem; margin: 0 0 12px; }
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+  .stat {
+    background: var(--card2); border-radius: 12px; padding: 14px 12px; text-align: center;
+  }
+  .stat .num { font-size: 1.5rem; font-weight: 700; }
+  .stat .lbl { font-size: .72rem; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+  @media (max-width: 560px) { .stats { grid-template-columns: repeat(2, 1fr); } h1 { font-size: 1.3rem; } }
+  label { display: block; font-size: .8rem; color: var(--muted); margin: 10px 0 4px; }
+  input[type=date], input[type=number], input[type=text], textarea {
+    width: 100%; background: var(--card2); border: 1px solid var(--line);
+    color: var(--text); border-radius: 10px; padding: 10px 12px; font-size: 1rem;
+  }
+  textarea { min-height: 54px; resize: vertical; }
+  .row { display: flex; gap: 12px; }
+  .row > div { flex: 1; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
+  .chip {
+    border: 1px solid var(--line); background: var(--card2); color: var(--text);
+    padding: 8px 12px; border-radius: 999px; cursor: pointer; font-size: .85rem;
+    user-select: none; transition: .12s;
+  }
+  .chip.on { background: var(--accent); border-color: var(--accent); }
+  button {
+    background: var(--accent); color: #fff; border: 0; border-radius: 10px;
+    padding: 11px 16px; font-size: 1rem; cursor: pointer; font-weight: 600;
+  }
+  button.secondary { background: var(--card2); border: 1px solid var(--line); color: var(--text); font-weight: 500; }
+  .btnrow { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
+  .rec { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--line); }
+  .rec:last-child { border-bottom: 0; }
+  .rec .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--accent2); flex: none; }
+  .rec .why { color: var(--muted); font-size: .82rem; }
+  .session { display: flex; justify-content: space-between; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--line); }
+  .session:last-child { border-bottom: 0; }
+  .session .meta { font-size: .8rem; color: var(--muted); }
+  .session .tags { font-size: .78rem; color: var(--accent2); }
+  .del { background: transparent; color: var(--muted); border: 0; cursor: pointer; font-size: 1.1rem; padding: 0 6px; }
+  .empty { color: var(--muted); font-size: .9rem; padding: 6px 0; }
+  .addaspect { display: flex; gap: 8px; margin-top: 10px; }
+  .addaspect input { flex: 1; }
+  .bar { height: 8px; background: var(--card2); border-radius: 6px; overflow: hidden; margin-top: 6px; }
+  .bar > span { display: block; height: 100%; background: var(--accent); }
+  .legend { display: flex; justify-content: space-between; font-size: .78rem; color: var(--muted); margin-top: 4px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>🎾 Coaching Dashboard</h1>
+  <p class="sub">Log what you worked on, watch your hours add up, and get told what to drill next.</p>
+</header>
+<main>
+
+  <div class="card">
+    <div class="stats" id="stats"></div>
+  </div>
+
+  <div class="card">
+    <h2>Log a session</h2>
+    <div class="row">
+      <div>
+        <label>Date</label>
+        <input type="date" id="f-date" />
+      </div>
+      <div>
+        <label>Hours</label>
+        <input type="number" id="f-hours" step="0.5" min="0" value="2" />
+      </div>
+    </div>
+    <label>What did you work on?</label>
+    <div class="chips" id="f-aspects"></div>
+    <div class="addaspect">
+      <input type="text" id="f-newaspect" placeholder="Add a custom focus area…" />
+      <button class="secondary" id="addAspectBtn" type="button">+ Add</button>
+    </div>
+    <label>Notes (optional)</label>
+    <textarea id="f-notes" placeholder="e.g. junior group, kick serve drills…"></textarea>
+    <div class="btnrow">
+      <button id="saveBtn" type="button">Save session</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>👉 Work on this next</h2>
+    <div id="recs"></div>
+  </div>
+
+  <div class="card">
+    <h2>Recent sessions</h2>
+    <div id="sessions"></div>
+  </div>
+
+  <div class="card">
+    <h2>Data</h2>
+    <p class="sub">Your data is saved in this browser. Export regularly to back it up or move it to another device.</p>
+    <div class="btnrow">
+      <button class="secondary" id="exportBtn" type="button">Export JSON</button>
+      <button class="secondary" id="importBtn" type="button">Import JSON</button>
+      <button class="secondary" id="resetBtn" type="button">Reset all</button>
+    </div>
+    <input type="file" id="importFile" accept="application/json" style="display:none" />
+  </div>
+
+</main>
+
+<script>
+const KEY = "tennisCoachDashboard.v1";
+const DEFAULT_ASPECTS = [
+  "Serve", "Forehand", "Backhand", "Volley", "Return",
+  "Footwork", "Slice", "Overhead", "Strategy / Match play", "Fitness"
+];
+
+let state = load();
+let formAspects = new Set();
+
+function load() {
+  try {
+    const raw = localStorage.getItem(KEY);
+    if (raw) return JSON.parse(raw);
+  } catch (e) {}
+  return { aspects: [...DEFAULT_ASPECTS], sessions: [] };
+}
+function save() { localStorage.setItem(KEY, JSON.stringify(state)); }
+
+function todayStr() {
+  const d = new Date();
+  return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0");
+}
+function daysBetween(a, b) { return Math.floor((a - b) / 86400000); }
+function parseDate(s) { return new Date(s + "T00:00:00"); }
+
+function totalHours(sinceDays) {
+  const now = new Date();
+  return state.sessions.reduce((sum, s) => {
+    if (sinceDays != null && daysBetween(now, parseDate(s.date)) >= sinceDays) return sum;
+    return sum + (Number(s.hours) || 0);
+  }, 0);
+}
+function fmt(n) { return (Math.round(n * 10) / 10).toString(); }
+
+function renderStats() {
+  const el = document.getElementById("stats");
+  const total = totalHours(null);
+  const wk = totalHours(7);
+  const biweek = totalHours(14);
+  const count = state.sessions.length;
+  el.innerHTML = [
+    ["This week", fmt(wk) + "h"],
+    ["Last 14 days", fmt(biweek) + "h"],
+    ["All time", fmt(total) + "h"],
+    ["Sessions", count]
+  ].map(([l, n]) => `<div class="stat"><div class="num">${n}</div><div class="lbl">${l}</div></div>`).join("");
+}
+
+function renderAspectChips() {
+  const el = document.getElementById("f-aspects");
+  el.innerHTML = state.aspects.map(a =>
+    `<span class="chip ${formAspects.has(a) ? "on" : ""}" data-a="${escapeHtml(a)}">${escapeHtml(a)}</span>`
+  ).join("");
+  el.querySelectorAll(".chip").forEach(c => {
+    c.onclick = () => {
+      const a = c.getAttribute("data-a");
+      if (formAspects.has(a)) formAspects.delete(a); else formAspects.add(a);
+      renderAspectChips();
+    };
+  });
+}
+
+function aspectStats() {
+  const now = new Date();
+  return state.aspects.map(a => {
+    let count = 0, lastDate = null;
+    for (const s of state.sessions) {
+      if (s.aspects && s.aspects.includes(a)) {
+        count++;
+        const d = parseDate(s.date);
+        if (!lastDate || d > lastDate) lastDate = d;
+      }
+    }
+    const daysSince = lastDate ? daysBetween(now, lastDate) : null;
+    return { aspect: a, count, daysSince };
+  });
+}
+
+function renderRecs() {
+  const el = document.getElementById("recs");
+  if (state.sessions.length < 3) {
+    el.innerHTML = `<div class="empty">Log a few sessions (3+) and recommendations will appear here.</div>`;
+    return;
+  }
+  const stats = aspectStats();
+  // Neglected = never worked first, then longest since last worked.
+  const ranked = stats.slice().sort((x, y) => {
+    const xs = x.daysSince == null ? Infinity : x.daysSince;
+    const ys = y.daysSince == null ? Infinity : y.daysSince;
+    if (ys !== xs) return ys - xs;
+    return x.count - y.count;
+  });
+  const top = ranked.slice(0, 3);
+  el.innerHTML = top.map(r => {
+    let why;
+    if (r.daysSince == null) why = "Never logged yet — give it a session.";
+    else if (r.daysSince === 0) why = "Worked today.";
+    else why = `Last worked ${r.daysSince} day${r.daysSince === 1 ? "" : "s"} ago · ${r.count}× total.`;
+    return `<div class="rec"><span class="dot"></span><div><div>${escapeHtml(r.aspect)}</div><div class="why">${why}</div></div></div>`;
+  }).join("");
+}
+
+function renderSessions() {
+  const el = document.getElementById("sessions");
+  if (!state.sessions.length) { el.innerHTML = `<div class="empty">No sessions yet.</div>`; return; }
+  const sorted = state.sessions.slice().sort((a, b) => b.date.localeCompare(a.date));
+  el.innerHTML = sorted.slice(0, 30).map(s => {
+    const d = parseDate(s.date);
+    const dateLbl = d.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" });
+    const tags = (s.aspects || []).join(" · ");
+    return `<div class="session">
+      <div>
+        <div><strong>${dateLbl}</strong> · ${fmt(s.hours)}h</div>
+        <div class="tags">${escapeHtml(tags || "—")}</div>
+        ${s.notes ? `<div class="meta">${escapeHtml(s.notes)}</div>` : ""}
+      </div>
+      <button class="del" data-id="${s.id}" title="Delete">✕</button>
+    </div>`;
+  }).join("");
+  el.querySelectorAll(".del").forEach(b => {
+    b.onclick = () => {
+      const id = b.getAttribute("data-id");
+      state.sessions = state.sessions.filter(s => String(s.id) !== String(id));
+      save(); renderAll();
+    };
+  });
+}
+
+function renderAll() { renderStats(); renderRecs(); renderSessions(); }
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
+}
+
+// --- events ---
+document.getElementById("f-date").value = todayStr();
+
+document.getElementById("addAspectBtn").onclick = () => {
+  const input = document.getElementById("f-newaspect");
+  const val = input.value.trim();
+  if (val && !state.aspects.includes(val)) {
+    state.aspects.push(val); save(); input.value = ""; renderAspectChips();
+  }
+};
+
+document.getElementById("saveBtn").onclick = () => {
+  const date = document.getElementById("f-date").value || todayStr();
+  const hours = parseFloat(document.getElementById("f-hours").value) || 0;
+  const notes = document.getElementById("f-notes").value.trim();
+  if (formAspects.size === 0) {
+    if (!confirm("No focus areas selected. Save anyway?")) return;
+  }
+  state.sessions.push({
+    id: Date.now(), date, hours, aspects: [...formAspects], notes
+  });
+  save();
+  formAspects = new Set();
+  document.getElementById("f-notes").value = "";
+  renderAspectChips();
+  renderAll();
+};
+
+document.getElementById("exportBtn").onclick = () => {
+  const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "tennis-coaching-" + todayStr() + ".json";
+  a.click();
+};
+
+document.getElementById("importBtn").onclick = () => document.getElementById("importFile").click();
+document.getElementById("importFile").onchange = (e) => {
+  const file = e.target.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const data = JSON.parse(reader.result);
+      if (!data.aspects || !data.sessions) throw new Error("bad file");
+      state = data; save(); renderAspectChips(); renderAll();
+      alert("Imported " + state.sessions.length + " sessions.");
+    } catch (err) { alert("Could not import that file."); }
+  };
+  reader.readAsText(file);
+};
+
+document.getElementById("resetBtn").onclick = () => {
+  if (confirm("Delete ALL sessions and reset focus areas? Export first if you want a backup.")) {
+    state = { aspects: [...DEFAULT_ASPECTS], sessions: [] };
+    save(); formAspects = new Set(); renderAspectChips(); renderAll();
+  }
+};
+
+renderAspectChips();
+renderAll();
+</script>
+</body>
+</html>
